@@ -83,6 +83,23 @@ int modInverso(int a, int m){
 *************P*L*A*N*T*I*L*L*A************
 *****************************************/
 
+/*
+	Author: Racso Galvan
+
+	Idea: 
+	
+		- Good math and sliding windows problem.
+
+		- Just maximize for each consecutive K coordinates (sorting before)
+		  the formula:
+
+		  	$$ \sum\limits_{i=0}^{k-1}i\cdot x_{i} - \sum\limits_{i=0}^{k-1}(k-1-i)\cdot x_{i} $$
+
+		  Use the first sum as V1, and the second one as V2. Deduce how to transform it.
+		  Use deque to handle the modifications easily (sliding windows).
+
+*/
+
 const int N = 300000+5;
 
 int n,k;
