@@ -83,6 +83,25 @@ int modInverso(int a, int m){
 *************P*L*A*N*T*I*L*L*A************
 *****************************************/
 
+/*
+	Author: Racso Galvan
+ 	
+	Idea:
+
+		- Interesting problem, is a variation of Knapsack 0-1
+
+		- Let's say that we want to get a quantity of water such
+		  that its remainder over k is the same as V's.
+
+		  After that, we would only need to add or remove complete scoops
+		  So, apply a Knapsack to get a distribution that works like that
+		  and finally do as stated. (Separating cases when exists an a_i = v and when not)
+
+		- Tricky case: V = mk. In this case just put everything into a tank
+		  and take of m times to another one (all others are empty)
+
+*/
+
 const int N = 5000+5;
 
 int n,k,v;
