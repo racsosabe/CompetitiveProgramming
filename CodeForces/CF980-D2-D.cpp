@@ -99,7 +99,9 @@ int modInverso(int a, int m){
 
 		  Tricky case: 0s are allowed to join any group (since 0 is a square and a.0 = 0)
 
-		  Brute force for each interval and get the number of different SFR (associated with a low number to use arrays and avoiding LogN factors).
+		  Brute force for each interval and get the number of different 
+		  
+		  SFR (associated with a low number to use arrays and avoiding LogN factors).
 
 		  Consider the tricky case and done.
 */
