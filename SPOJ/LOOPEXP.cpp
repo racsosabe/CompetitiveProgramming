@@ -83,28 +83,43 @@ int modInverso(int a, int m){
 *************P*L*A*N*T*I*L*L*A************
 *****************************************/
 
+/*
+	Author: Racso Galvan
+
+	Idea:
+		- Simple Math and Probabilities problem.
+
+		- First, we need to notice the linearity of expectation, so we can
+		  just add the expectation for each number of times per position.
+
+		  Then, we end up with this expression:
+
+		  S = \sum\limits_{i=1}^{n}\sum\limits_{k=i}^{n}\frac{(n-i)!\cdot(k-1)!}{(k-i)!}
+
+		  After changing the expressions we end up with something like this:
+
+		  S = \sum\limits_{i=1}^{n}(i-1)!\cdot (n-i)! \cdot \binom{n}{i} 
+
+		  Reduce it to:
+
+		  S = \sum\limits_{i=1}^{n} \frac{1}{n}
+
+		  Sum of inverses from 1 to n.
+
+*/
+
 int n;
-int v[10];
 
 int main(){
-	ri(n);
-	for(int i=1; i<=n; i++){
-		v[i-1] = i;
-	}
-	int num = 0;
-	int den = 0;
-	do{
-		int maximo = -1;
-		for(int i=0; i<n; i++){
-			if(v[i] > maximo){
-				maximo = v[i];
-				num++;
-			}
+	int t;
+	ri(t);
+	while(t--){
+		ri(n);
+		double ans = 0.0;
+		for(int i=1; i<=n; i++){
+			ans += 1.0/i;
 		}
-		den++;
-	}while(next_permutation(v,v+n));
-	double ans = 1.0*num/den;
-	cout << num << " " << den << endl;
-	cout << setprecision(8) << ans << endl;
+		cout << setprecision(8) << fixed << ans << endl;
+	}
 	return 0;
 }
