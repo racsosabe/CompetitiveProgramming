@@ -83,16 +83,82 @@ int modInverso(int a, int m){
 *************P*L*A*N*T*I*L*L*A************
 *****************************************/
 
-int n, k, p;
+/* 
+	Author: Racso Galvan
+
+	Idea:
+		- Tricky DP Problem
+
+		- Let's denote our DP function as 
+
+		  DP(pos,allow): Best sum that current player can get
+
+		  while using at most "allow" coins from "pos".
+
+		- Notation: suffix[i]: Sum of elements from i to n-1.
+
+		- So, first of all, DP(pos,allow) = max_{1<=i<=allow}(pos,i)
+
+		  But we can't simply do that, so we are going to take care of
+
+		  i = allow case, which is:
+
+		  Sum of player when using allow coins: 
+
+		  S = suffix[pos] - DP(pos+allow,2*allow)
+
+		  That is because we are considering to take everything and deleting
+		  
+		  the other player's part (which is DP(pos+allow,2*allow)).
+
+		- Now, we can say that:
+
+		  DP(pos,allow) = max(DP(pos,allow-1),suffix[pos]-DP(pos+allow,2*allow))
+
+		  Also, when pos < 0 the answer is 0, when allow = 1 the form
+
+		  is directly take the only element available
+
+		  Finally, to avoid incoherent cases, when allow > n-pos we do
+
+		  DP(pos,allow) = DP(pos,n-pos)
+
+		  Call DP(0,2) to get the answer.
+
+		- Complexity: O(n^2)
+
+*/
+
+const int N = 2000+5;
+const int M = 1024+5;
+
+int n;
+int v[N];
+int suffix[N];
+int memo[N][M];
+bool vis[N][M];
+
+int DP(int pos, int allow){ // Best sum at pos and at most allow coins
+	if(pos == n) return 0;
+	if(allow == 1){
+		return memo[pos][allow] = suffix[pos] - DP(pos+1,2);
+	}
+	if(allow > n-pos) return DP(pos,n-pos);
+	if(vis[pos][allow]) return memo[pos][allow];
+	vis[pos][allow] = true;
+	return memo[pos][allow] = max(DP(pos,allow-1),suffix[pos]-DP(pos+allow,2*allow));
+}
 
 int main(){
-	srand(time(0));
-	n = 2000;
-	printf("%d\n",n);
+	ri(n);
+	int S = 0;
 	for(int i=0; i<n; i++){
-		int x = rand()%100000+1;
-		cout << x << " ";
+		ri(v[i]);
 	}
-	puts("");
+	for(int i=n-1; i>=0; i--){
+		suffix[i] = suffix[i+1]+v[i];
+	}
+	int ans = DP(0,2);
+	printf("%d\n",ans);
 	return 0;
 }

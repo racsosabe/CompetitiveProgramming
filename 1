@@ -83,16 +83,52 @@ int modInverso(int a, int m){
 *************P*L*A*N*T*I*L*L*A************
 *****************************************/
 
-int n, k, p;
+const int N = 2000+5;
+const int M = 256+5;
+
+int n;
+int v[N];
+int ac[N];
+int memo[N][M][2];
+bool vis[N][M][2];
+
+int DP(int pos, int last, int turn){
+	if(pos >= n) return 0;
+	if(vis[pos][last][turn]) return memo[pos][last][turn];
+	int ans;
+	if(turn){
+		ans = INT_MIN;
+		int sum = 0;
+		for(int i=0; i<last<<1; i++){
+			if(pos+i == n) break;
+			sum += v[pos+i];
+			ans = max(ans,sum+DP(pos+i+1,i+1,1-turn));
+		}
+	}
+	else{
+		ans = INT_MAX;
+		int sum = 0;
+		for(int i=0; i<last<<1; i++){
+			if(pos+i == n) break;
+			sum += v[pos+i];
+			ans = min(ans,DP(pos+i+1,i+1,1-turn)-sum);
+		}
+
+	}
+	vis[pos][last][turn] = true;
+	return memo[pos][last][turn] = ans;
+}
 
 int main(){
-	srand(time(0));
-	n = 2000;
-	printf("%d\n",n);
+	ri(n);
+	int S = 0;
 	for(int i=0; i<n; i++){
-		int x = rand()%100000+1;
-		cout << x << " ";
+		ri(v[i]);
+		S += v[i];
+		ac[i] = S;
 	}
-	puts("");
+	int max_dif = DP(0,1,1);
+	int ans = (max_dif + S)/2;
+	printf("%d\n",ans);
 	return 0;
 }
