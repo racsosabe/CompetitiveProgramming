@@ -83,34 +83,19 @@ int modInverso(int a, int m){
 *************P*L*A*N*T*I*L*L*A************
 *****************************************/
 
-int n;
-int x[2000+5], y[2000+5];
-
-ll getSide(int i, int j){
-	ll dx = x[i]-x[j];
-	ll dy = y[i]-y[j];
-	return dx*dx + dy*dy;
-}
+int n = 1500;
+map<ii,bool> vis;
 
 int main(){
-	ri(n);
+	cout << n << endl;
+	srand(time(0));
 	for(int i=0; i<n; i++){
-		ri2(x[i],y[i]);
-	}
-	ll ans = 0LL;
-	for(int i=0; i<n; i++){
-		for(int j=i+1; j<n; j++){
-			for(int k=j+1; k<n; k++){
-				ll L1 = getSide(i,j);
-				ll L2 = getSide(j,k);
-				ll L3 = getSide(i,k);
-				ll H = max(L1,max(L2,L3));
-				ll C1 = min(L1,min(L2,L3));
-				ll C2 = L1+L2+L3-H-C1;
-				if(H == C1 + C2) ans++;
-			}
+		int x = rand()%20001-10000;
+		int y = rand()%20001-10000;
+		if(!vis[mp(x,y)]){
+			cout << x << " " << y << endl;
+			vis[mp(x,y)] = true;
 		}
 	}
-	cout << ans << endl;
 	return 0;
 }

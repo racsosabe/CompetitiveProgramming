@@ -83,32 +83,51 @@ int modInverso(int a, int m){
 *************P*L*A*N*T*I*L*L*A************
 *****************************************/
 
-int n;
-int x[2000+5], y[2000+5];
+const int N = 1500+5;
+const long double EPS = 1e-15;
 
-ll getSide(int i, int j){
-	ll dx = x[i]-x[j];
-	ll dy = y[i]-y[j];
-	return dx*dx + dy*dy;
+typedef pair<long double, long double> pd;
+
+int n;
+long double x[N], y[N];
+pd directions[N];
+
+bool comp(pd &a, pd &b){
+	return a.first < b.first - EPS or ((a.first-b.first) < EPS and a.second < b.second - EPS);
 }
 
-int main(){
-	ri(n);
-	for(int i=0; i<n; i++){
-		ri2(x[i],y[i]);
+struct compar{
+	bool operator() (pd a, pd b){
+		return comp(a,b);
 	}
-	ll ans = 0LL;
+};
+
+int main(){
+	cin.tie(0);
+	cout.tie(0);
+	ios::sync_with_stdio(false);
+	cin >> n;
 	for(int i=0; i<n; i++){
-		for(int j=i+1; j<n; j++){
-			for(int k=j+1; k<n; k++){
-				ll L1 = getSide(i,j);
-				ll L2 = getSide(j,k);
-				ll L3 = getSide(i,k);
-				ll H = max(L1,max(L2,L3));
-				ll C1 = min(L1,min(L2,L3));
-				ll C2 = L1+L2+L3-H-C1;
-				if(H == C1 + C2) ans++;
-			}
+		cin >> x[i] >> y[i];
+	}
+	long double a,b;
+	int ans = 0;
+	int p;
+	for(int i=0; i<n; i++){
+		p = 0;
+		for(int j=0; j<n; j++){
+			if(i == j) continue;
+			a = x[j] - x[i];
+			b = y[j] - y[i];
+			long double L = sqrtl(a*a+b*b);
+			long double A = a / L;
+			long double B = b / L;
+			directions[p++] = mp(A,B);
+		}
+		sort(directions,directions+n-1,compar());
+		for(int j=0; j + 1< n; j++){
+			pair<long double,long double> ortho = mp(directions[j].second,-directions[j].first);
+			ans += upper_bound(directions,directions+n-1,ortho,compar()) - lower_bound(directions,directions+n-1,ortho,compar());
 		}
 	}
 	cout << ans << endl;
