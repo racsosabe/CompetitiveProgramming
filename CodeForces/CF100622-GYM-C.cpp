@@ -83,16 +83,79 @@ int modInverso(int a, int m){
 *************P*L*A*N*T*I*L*L*A************
 *****************************************/
 
+/*
+	Author: Racso Galvan
+
+	Idea:
+		- Easy greedy problem.
+
+		- Just notice that we can actually distribute the painted cells as intervals
+		  Because of constraints, we can brute force it for each row.
+
+		  Let's set a row X from a center (x,y) with radius r, then the interval would be
+		  [max(y-d,0),min(y+d,h-1)] where d is the greatest number such that
+		  (X-x)^2 + d^2 <= r^2 (we can binary search it)
+		
+		- Then, for each row, merge intervals by using a position pointer
+		  that will store the current position (so we don't double count
+		  
+		  already painted cells) and add all painted ones to a counter act
+		- The answer is h*w - \sum\limits_{row=0}^{w-1}act_{i}.
+
+		- Complexity: O(wnlogA). where w and n are according to the statement
+		  and A is the maximum radius value.
+
+*/
+
+const int N = 20000+5;
+
 int n;
+int h,w;
+vii rows[N];
+
+int getRoot(int c, int b){
+	int lo = 0, hi = 40000;
+	while(lo < hi){
+		int mi = lo + (hi-lo+1)/2;
+		if(b*b + mi*mi <= c*c) lo = mi;
+		else hi = mi-1;
+	}
+	return lo;
+}
 
 int main(){
-	ri(n);
-	for(int i=-n; i<=n; i++){
-		for(int j=-n; j<=n; j++){
-			if(i*i + j*j <= n*n) putchar('*');
-			else putchar(' ');
+	freopen("circles.in","r",stdin);
+	ri3(w,h,n);
+	int x,y,r;
+	int L,R;
+	for(int i=0; i<n; i++){
+		ri3(x,y,r);
+		for(int row = max(0,x-r); row<=min(w-1,x+r); row++){
+			int d = getRoot(r,abs(x-row));
+			L = max(0,y-d);
+			R = min(h-1,y+d);
+			rows[row].pb(mp(L,R));
 		}
-		puts("");
 	}
+	int ans = 0;
+	for(int i=0; i<w; i++){
+		sort(all(rows[i]));
+		int p = 0;
+		int pos = 0;
+		int act = 0;
+		for(int j=0; j<rows[i].size(); j++){
+			if(p < rows[i][j].first){
+				p = rows[i][j].second+1;
+				act += rows[i][j].second - rows[i][j].first+1;
+			}
+			else{
+				act += max(0,rows[i][j].second-p+1);
+				p = max(p,rows[i][j].second+1);
+			}
+		}
+		ans += h-act;
+	}
+	freopen("circles.out","w",stdout);
+	printf("%d\n",ans);
 	return 0;
 }
