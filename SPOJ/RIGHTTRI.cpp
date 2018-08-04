@@ -109,9 +109,11 @@ int modInverso(int a, int m){
 
 		  Now, to avoid double counting, we can say that the angle must be
 
-		  0Â° < theta < 80Â, so we need that
+		  0 rad < theta < pi rad, so we need that
 
 		  dot(v1,v2) = 0 and cross(v1,v2) < 0 to count v1,v2 as a right angle.
+
+		- Complexity: O(n^2logn)
 
 */
 
