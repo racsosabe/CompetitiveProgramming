@@ -110,12 +110,13 @@ int modInverso(int a, int m){
 
 		- Also, since a string can be formed in different colorings, we must
 		  take the frequency according to that (let's say that we relate them 
-		  to a pair (Y,X))
+		  to a number Y since X's value is derived from above equation)
 
 		- With all the above, we can brute force the last half and add the
 		  queries according to what's needed.
 
-		- Complexity: O(n logn 2^{n}) since we are using map for the frequencies.
+		- Complexity: O(n 2^{n}) since we are using trie for the frequencies.
+		  So we got O(n) per insert and query O(2^{n}) times.
 
 */
 
@@ -128,26 +129,26 @@ int nodos = 1;
 char s[N];
 char act[N];
 int trie[MAX][E];
-map<ii,int> frequency[MAX];
+int frequency[MAX][20];
 
-void insert(int q1, int q2){
+void insert(int q){
 	int pos = 0;
 	for(int i=0; i<n; i++){
 		int next = act[i]-'a';
 		if(!trie[pos][next]) trie[pos][next] = nodos++;
 		pos = trie[pos][next];
 	}
-	frequency[pos][mp(q1,q2)]++;
+	frequency[pos][q]++;
 }
 
-int query(int q1, int q2){
+int query(int q){
 	int pos = 0;
 	for(int i=0; i<n; i++){
 		int next = act[i]-'a';
 		if(!trie[pos][next]) return 0;
 		pos = trie[pos][next];
 	}
-	return frequency[pos][mp(q1,q2)];
+	return frequency[pos][q];
 }
 
 int main(){
@@ -165,7 +166,7 @@ int main(){
 			}
 		}
 		act[n] = '\0';
-		insert(n-__builtin_popcount(mask),__builtin_popcount(mask));
+		insert(n-__builtin_popcount(mask));
 	}
 	ll ans = 0LL;
 	for(int mask=0; mask<1<<n; mask++){
@@ -180,7 +181,7 @@ int main(){
 			act[p++] = s[j+n];
 		}
 		act[n] = '\0';
-		ans += query(__builtin_popcount(mask),n-__builtin_popcount(mask));
+		ans += query(__builtin_popcount(mask));
 	}
 	cout << ans << endl;
 	return 0;
