@@ -83,62 +83,25 @@ int modInverso(int a, int m){
 *************P*L*A*N*T*I*L*L*A************
 *****************************************/
 
-const int N = 30+5;
+const int N = 10000;
+const int OFFSET = 2;
 
 int n,w,k;
-int a[N];
-int t[N];
+int a[N+OFFSET], t[N+OFFSET]
+queue<int> Times[N+OFFSET];
 
 int main(){
 	ri3(n,w,k);
+	int a;
 	for(int i=0; i<n; i++){
 		ri(a[i]);
 	}
 	for(int i=0; i<n; i++){
 		ri(t[i]);
 	}
-	int solver = 0;
-	int ans = 0;
-	for(int mask=1; mask<1<<n; mask++){
-		vii values;
-		for(int i=0; i<n; i++){
-			if((mask>>i)&1){
-				values.pb(mp(t[i],a[i]));
-			}
-		}
-		sort(all(values));
-		int left = k;
-		int pos = values.size()-1;
-		int act = 0;
-		for(int i=0; i<w; i++){
-			act += values[pos].second;
-			left -= (values[pos].first+1)/2;
-			pos--;
-		}
-		while(pos >= 0){
-			act += values[pos].second;
-			left -= values[pos].first;
-			pos--;
-		}
-		if(left >= 0){
-			cout << left << endl;
-			for(int i=0; i<n; i++){
-				if((mask>>i)&1){
-					cout << a[i] << " " << t[i] << endl;
-				}
-			}
-			puts("");
-			if(ans < act){
-				ans = act;
-				solver = mask;
-			}
-		}
-	}
-	for(int i=0; i<n; i++){
-		if((solver>>i)&1){
-			cout << a[i] << " " << t[i] << endl;
-		}
-	}
+	
+	
+
 	cout << ans << endl;
 	return 0;
 }
