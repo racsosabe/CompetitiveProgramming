@@ -106,6 +106,15 @@ int modInverso(int a, int m){
 		  be >= K.
 
 		  Thus, we can use Divide and Conquer Optimization for this problem.
+		
+		  Observation: Just realize that if we denote max(L,R) as the maximum
+
+		  of the elements in an subarray a[L...R], then:
+
+		  max(a,d) + max(b,c) <= max(a,c) + max(b,d) with a <= b <= c <= d
+
+		  This is sufficient to apply Divide and Conquer Optimization for maximum
+
 
 		- Complexity: O(mnlogn)
 */
