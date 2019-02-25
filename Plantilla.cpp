@@ -1,4 +1,4 @@
-#include<bits/stdc++.h>
+  #include<bits/stdc++.h>
 #define all(v) (v).begin(),(v).end()
 #define pb push_back
 #define ppb pop_back
@@ -33,9 +33,27 @@ typedef set<iii> siii;
 
 ll gcd(ll a, ll b){ return b==0?a:gcd(b,a%b);}
 
-ll add(ll a, ll b, ll m = MOD){ return (a%m + b%m+2*m)%m;}
+ll add(ll a, ll b, ll m = MOD){
+	if(a >= m) a %= m;
+	if(b >= m) b %= m;
+	if(a < 0) a += m;
+	if(b < 0) b += m;
+	ll res = a+b;
+	if(res >= m or res <= -m) res %= m;
+	if(res < 0) res += m;
+	return res;
+}
 
-ll mul(ll a, ll b, ll m = MOD){ return ((a%m+m)*(b%m+m))%m;}
+ll mul(ll a, ll b, ll m = MOD){
+	if(a >= m) a %= m;
+	if(b >= m) b %= m;
+	if(a < 0) a += m;
+	if(b < 0) b += m;
+	ll res = a*b;
+	if(res >= m or res <= -m) res %= m;
+	if(res < 0) res += m;
+	return res;
+}
 
 ll pow_mod(ll a, ll b, ll m = MOD){
 	ll res = 1LL;
