@@ -101,66 +101,65 @@ int modInverso(int a, int m){
 *************P*L*A*N*T*I*L*L*A************
 *****************************************/
 
-/*
-	Author: Racso Galvan
-
-	Idea:
-
-	- 
-
-*/
-
-const int N = 2000+5;
-
-string v[] = {"1110111", "0010010", "1011101", "1011011", "0111010", "1101011", "1101111", "1010010", "1111111", "1111011"};
+const int N = 200000+5;
 
 int n;
-int k;
-int a[N];
-int mask[11];
-bool vis[N][N];
-bool memo[N][N];
-int choice[N][N];
+int x;
+int y;
+vi G[N];
+int deg[N];
+bool vis[N][5];
+int memo[N][5];
 
-bool DP(int pos, int left){
-	if(pos == n) return left == 0;
-	if(vis[pos][left]) return memo[pos][left];
-	bool ans = false;
-	for(int i=9; i>=0; i--){
-		if((mask[i] & a[pos]) != a[pos]) continue;
-		int changes = __builtin_popcount(a[pos] ^ mask[i]);
-		if(left >= changes and DP(pos + 1, left - changes)){
-			choice[pos][left] = i;
-			ans = true;
-			break;
+int DP(int u, int uses, int p = -1){
+	if(vis[u][uses]) return memo[u][uses];
+	int res = 0;
+	if(uses){
+		vector<int> bests(uses, - 2 * n);
+		for(int v : G[u]){
+			if(v == p) continue;
+			int aporte = max({DP(v, 0, u), DP(v, 1, u), DP(v, 2, u)});
+			res += aporte;
+			int change = max({DP(v, 0, u), DP(v, 1, u)}) - aporte;
+			if(bests[uses-1] < change){
+				bests[uses-1] = change;
+			}
+			if(uses == 2 and bests[0] < bests[1]) swap(bests[0], bests[1]);
+		}
+		res += uses;
+		for(auto x : bests) res += x;
+	}
+	else{
+		for(int v : G[u]){
+			if(v == p) continue;
+			res += max({DP(v, 0, u), DP(v, 1, u), DP(v, 2, u)});
 		}
 	}
-	vis[pos][left] = true;
-	return memo[pos][left] = ans;
+	vis[u][uses] = true;
+	return memo[u][uses] = res;
 }
 
 int main(){
-	ri2(n, k);
-	char s[10];
-	for(int i=0; i<10; i++){
-		for(int j=0; j<v[i].size(); j++){
-			if(v[i][j] == '1') mask[i] |= 1<<j;
+	ri3(n, x, y);
+	for(int i=1; i<n; i++){
+		int u, v;
+		ri2(u, v);
+		deg[u] += 1;
+		deg[v] += 1;
+		G[u].emplace_back(v);
+		G[v].emplace_back(u);
+	}
+	ll ans;
+	if(x > y){
+		ans = 1LL * y * (n - 1);
+		if(*max_element(deg + 1, deg + 1 + n) == n-1){
+			ans += x - y;
 		}
 	}
-	for(int i=0; i<n; i++){
-		scanf("%s",s);
-		for(int j=0; s[j]; j++){
-			if(s[j] == '1') a[i] |= 1<<j;
-		}
+	else{
+		int max_edges_in_tree = max({DP(1, 0), DP(1, 1), DP(1, 2)});
+		ans = 1LL * x * max_edges_in_tree + 1LL * y * (n - 1 - max_edges_in_tree);
 	}
-	if(DP(0,k)){
-		int left = k;
-		for(int i=0; i<n; i++){
-			putchar('0' + choice[i][left]);
-			left -= __builtin_popcount(a[i] ^ mask[choice[i][left]]);
-		}
-		puts("");
-	}
-	else puts("-1");
+	printf("%lld\n", ans);
 	return 0;
 }

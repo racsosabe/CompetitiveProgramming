@@ -106,61 +106,117 @@ int modInverso(int a, int m){
 
 	Idea:
 
-	- 
+	- Basic Aho-Corasick problem.
+
+	- Just notice that if we build the automaton and try to update the occurrences
+
+	  of some state X, then we must update all its suffix links recursively.
+
+	  So, since we cannot repeat occurrences, we can just use a visited boolean
+
+	  array to mark a state so we can count only the ones that haven't been visited 
+
+	  yet.
+
+	- Complexity: O(n * |E| + m) per case, where n is the sum of lengths of the
+
+	  patterns, E is the alphabet and m is the length of the text.
 
 */
 
-const int N = 2000+5;
-
-string v[] = {"1110111", "0010010", "1011101", "1011011", "0111010", "1101011", "1101111", "1010010", "1111111", "1111011"};
+const int SUML = 500000 + 5;
+const int E = 26;
 
 int n;
-int k;
-int a[N];
-int mask[11];
-bool vis[N][N];
-bool memo[N][N];
-int choice[N][N];
+int nodes;
+char s[55];
+int cnt[SUML];
+int suf[SUML];
+bool vis[SUML];
+bool used[SUML];
+int go[SUML][E];
+int trie[SUML][E];
 
-bool DP(int pos, int left){
-	if(pos == n) return left == 0;
-	if(vis[pos][left]) return memo[pos][left];
-	bool ans = false;
-	for(int i=9; i>=0; i--){
-		if((mask[i] & a[pos]) != a[pos]) continue;
-		int changes = __builtin_popcount(a[pos] ^ mask[i]);
-		if(left >= changes and DP(pos + 1, left - changes)){
-			choice[pos][left] = i;
-			ans = true;
-			break;
+void insert(int npat){
+	int pos = 0;
+	for(int i = 0; s[i]; i++){
+		int nxt = s[i] - 'a';
+		if(trie[pos][nxt] == 0){
+			cnt[nodes] = 0;
+			for(int j = 0; j < E; j++) trie[nodes][j] = go[nodes][j] = 0;
+			trie[pos][nxt] = nodes++;
+		}
+		pos = trie[pos][nxt];
+	}
+	cnt[pos] += 1;
+}
+
+void BFS(int src){
+	queue<int> Q;
+	Q.emplace(src);
+	while(!Q.empty()){
+		int u = Q.front();
+		Q.pop();
+		vis[u] = false;
+		for(int i = 0; i < E; i++){
+			if(!trie[u][i]){
+				go[u][i] = u ? go[suf[u]][i] : 0;
+			}
+			else{
+				go[u][i] = trie[u][i];
+			}
+		}
+		for(int i = 0; i < E; i++){
+			if(trie[u][i]){
+				int v = trie[u][i];
+				suf[v] = u? go[suf[u]][i] : 0;
+				Q.emplace(v);
+			}
 		}
 	}
-	vis[pos][left] = true;
-	return memo[pos][left] = ans;
+}
+
+void buildAutomaton(int npat){
+	nodes = 1;
+	suf[0] = 0;
+	cnt[0] = 0;
+	for(int i = 0; i < E; i++) trie[0][i] = go[0][i] = 0;
+	for(int i = 1; i <= npat; i++){
+		scanf("%s", s);
+		insert(i);
+	}
+	BFS(0);
+}
+
+int propagate(int state){
+	if(vis[state]) return 0;
+	if(state == 0) return 0;
+	int ans = cnt[state];
+	ans += propagate(suf[state]);
+	vis[state] = true;
+	return ans;
 }
 
 int main(){
-	ri2(n, k);
-	char s[10];
-	for(int i=0; i<10; i++){
-		for(int j=0; j<v[i].size(); j++){
-			if(v[i][j] == '1') mask[i] |= 1<<j;
+	int t;
+	ri(t);
+	while(t--){
+		ri(n);
+		buildAutomaton(n);
+		getchar();
+		ll ans = 0LL;
+		int state = 0;
+		char c = getchar();
+		int pos = 0;
+		while(c != '\n'){
+			int nxt = c - 'a';
+			int nstate = go[state][nxt];
+			ans += propagate(nstate);
+			state = nstate;
+			pos += 1;
+			c = getchar();
 		}
+		printf("%lld\n", ans);
 	}
-	for(int i=0; i<n; i++){
-		scanf("%s",s);
-		for(int j=0; s[j]; j++){
-			if(s[j] == '1') a[i] |= 1<<j;
-		}
-	}
-	if(DP(0,k)){
-		int left = k;
-		for(int i=0; i<n; i++){
-			putchar('0' + choice[i][left]);
-			left -= __builtin_popcount(a[i] ^ mask[choice[i][left]]);
-		}
-		puts("");
-	}
-	else puts("-1");
 	return 0;
 }

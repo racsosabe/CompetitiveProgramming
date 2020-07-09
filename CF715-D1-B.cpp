@@ -101,66 +101,101 @@ int modInverso(int a, int m){
 *************P*L*A*N*T*I*L*L*A************
 *****************************************/
 
-/*
-	Author: Racso Galvan
-
-	Idea:
-
-	- 
-
-*/
-
-const int N = 2000+5;
-
-string v[] = {"1110111", "0010010", "1011101", "1011011", "0111010", "1101011", "1101111", "1010010", "1111111", "1111011"};
+const ll INF = 1e14;
+const int N = 1000+5;
+const int M = 10000+5;
 
 int n;
-int k;
-int a[N];
-int mask[11];
-bool vis[N][N];
-bool memo[N][N];
-int choice[N][N];
+int m;
+vi G[N];
+vi E[N];
+ll w[M];
+int a[M];
+int b[M];
+vi special;
 
-bool DP(int pos, int left){
-	if(pos == n) return left == 0;
-	if(vis[pos][left]) return memo[pos][left];
-	bool ans = false;
-	for(int i=9; i>=0; i--){
-		if((mask[i] & a[pos]) != a[pos]) continue;
-		int changes = __builtin_popcount(a[pos] ^ mask[i]);
-		if(left >= changes and DP(pos + 1, left - changes)){
-			choice[pos][left] = i;
-			ans = true;
-			break;
+ll Dijkstra(int src, int snk){
+	vll D(n, INF);
+	D[src] = 0;
+	priority_queue< pair<ll,int> > Q;
+	Q.emplace(mp(0, src));
+	while(!Q.empty()){
+		int u = Q.top().second;
+		ll dis = -Q.top().first;
+		Q.pop();
+		if(D[u] < dis) continue;
+		for(int i=0; i<G[u].size(); i++){
+			int v = G[u][i];
+			int e = E[u][i];
+			ll we = w[e];
+			assert(we >= 0);
+			if(!we) continue;
+			if(D[v] > D[u] + we){
+				D[v] = D[u] + we;
+				Q.emplace(mp(-D[v], v));
+			}
 		}
 	}
-	vis[pos][left] = true;
-	return memo[pos][left] = ans;
+	return D[snk];
+}
+
+void fixEdges(int l){
+	for(int i=0; i<special.size(); i++){
+		if(i < l) w[special[i]] = 1;
+		else w[special[i]] = INF;
+	}
 }
 
 int main(){
-	ri2(n, k);
-	char s[10];
-	for(int i=0; i<10; i++){
-		for(int j=0; j<v[i].size(); j++){
-			if(v[i][j] == '1') mask[i] |= 1<<j;
+	ri2(n, m);
+	int L, s, t;
+	ri3(L, s, t);
+	for(int i=0; i<m; i++){
+		ri2(a[i], b[i]);
+		rll(w[i]);
+		if(!w[i]){
+			special.emplace_back(i);
 		}
+		G[a[i]].emplace_back(b[i]);
+		G[b[i]].emplace_back(a[i]);
+		E[a[i]].emplace_back(i);
+		E[b[i]].emplace_back(i);
 	}
-	for(int i=0; i<n; i++){
-		scanf("%s",s);
-		for(int j=0; s[j]; j++){
-			if(s[j] == '1') a[i] |= 1<<j;
+	if(Dijkstra(s, t) < L){
+		puts("NO");
+		return 0;
+	}
+	for(int i : special) w[i] = 1;
+	if(Dijkstra(s, t) > L){
+		puts("NO");
+		return 0;
+	}
+	if(!special.empty()){
+		int lo = 1, hi = special.size();
+		while(lo < hi){
+			int mi = lo + (hi - lo) / 2;
+			fixEdges(mi);
+			if(Dijkstra(s, t) > L) lo = mi + 1;
+			else hi = mi;
 		}
-	}
-	if(DP(0,k)){
-		int left = k;
-		for(int i=0; i<n; i++){
-			putchar('0' + choice[i][left]);
-			left -= __builtin_popcount(a[i] ^ mask[choice[i][left]]);
+		ll low = 1, hiw = INF;
+		fixEdges(lo);
+		while(low < hiw){
+			ll mi = low + (hiw - low) / 2;
+			w[special[lo-1]] = mi;
+			if(Dijkstra(s, t) < L) low = mi + 1;
+				else hiw = mi;
 		}
-		puts("");
+		w[special[lo-1]] = low;
+		assert(Dijkstra(s, t) == L);
 	}
-	else puts("-1");
+	if(Dijkstra(s, t) != L){
+		puts("NO");
+		return 0;
+	}
+	puts("YES");
+	for(int i=0; i<m; i++){
+		printf("%d %d %lld\n", a[i], b[i], w[i]);
+	}
 	return 0;
 }

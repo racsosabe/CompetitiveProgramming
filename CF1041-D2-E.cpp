@@ -101,6 +101,28 @@ int modInverso(int a, int m){
 *************P*L*A*N*T*I*L*L*A************
 *****************************************/
 
+/*
+	Author: Racso Galvan
+
+	Idea:
+
+	- Greedy problem
+
+	- Notice that b[i] must be n for all i, so if this doesn't hold the answer is NO
+
+	- Now, consider the array a sorted in non decreasing order. We should have
+
+	  that the number of a[i] <= k for each k must not exceed k. Like the former observation,
+
+	  if that doesn't hold then the answer is NO.
+
+	  The intuition is that we can't have more than k subtrees with values <= k.
+
+	- 
+
+
+*/
+
 const int N = 1000+5;
 
 int n;

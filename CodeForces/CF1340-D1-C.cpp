@@ -104,63 +104,110 @@ int modInverso(int a, int m){
 /*
 	Author: Racso Galvan
 
-	Idea:
+	Idea: 
 
-	- 
+	- 0-1 BFS problem.
+
+	- This problem gives TLE if we use Dijkstra's Algorithm.
+
+	- Notice that since the red-light time isn't important for our moves, we can
+
+	  just store the time left for the next change (green to red) for each node.
+
+	  So we will use nodes as pairs (pos, left).
+
+	- Also, if we have ended in (m - 1, X) with k color changes, then the total time
+
+	  elapsed is k * (r + g) + (g - X).
+
+	- We can go from pos to pos + 1 or pos - 1 (let it be nxt) if the distance doesn't exceed 
+
+	  left. In that case, we can handle two situations:
+
+	  1) left > distance: We go to (nxt, left - distance) with 0 color changes.
+
+	  2) left = distance: We go to (nxt, g) with 1 color change.
+
+	- Now, since we only have edges with weights 0 and 1 we can use 0-1 BFS to 
+	  
+	  achieve a nice complexity.
+
+	- Complexity: O(mg)
 
 */
 
-const int N = 2000+5;
-
-string v[] = {"1110111", "0010010", "1011101", "1011011", "0111010", "1101011", "1101111", "1010010", "1111111", "1111011"};
+const int N = 10000+5;
+const int M = 1000+5;
+const int inf = 1<<29;
 
 int n;
-int k;
-int a[N];
-int mask[11];
-bool vis[N][N];
-bool memo[N][N];
-int choice[N][N];
+int m;
+int d[N];
+int g, r;
+int dis[N];
+int D[N][M];
 
-bool DP(int pos, int left){
-	if(pos == n) return left == 0;
-	if(vis[pos][left]) return memo[pos][left];
-	bool ans = false;
-	for(int i=9; i>=0; i--){
-		if((mask[i] & a[pos]) != a[pos]) continue;
-		int changes = __builtin_popcount(a[pos] ^ mask[i]);
-		if(left >= changes and DP(pos + 1, left - changes)){
-			choice[pos][left] = i;
-			ans = true;
-			break;
+void BFS(){
+	for(int i=0; i<m; i++){
+		for(int j=0; j<=g; j++){
+			D[i][j] = inf;
 		}
 	}
-	vis[pos][left] = true;
-	return memo[pos][left] = ans;
+	D[0][g] = 0;
+	deque<ii> Q;
+	Q.emplace_front(mp(0, g));
+	while(!Q.empty()){
+		int u = Q.front().first;
+		int t = Q.front().second;
+		Q.pop_front();
+		if(u > 0 and dis[u-1] <= t){
+			int sum = 0;
+			int nxt = t - dis[u-1];
+			int v = u - 1;
+			if(nxt == 0 and v != m-1){
+				nxt = g;
+				sum += 1;
+			}
+			if(D[v][nxt] > D[u][t] + sum){
+				D[v][nxt] = D[u][t] + sum;
+				if(sum == 0) Q.emplace_front(mp(v, nxt));
+				else Q.emplace_back(mp(v, nxt));
+			}
+		}
+		if(u + 1 < m and dis[u] <= t){
+			int sum = 0;
+			int nxt = t - dis[u];
+			int v = u + 1;
+			if(nxt == 0 and v != m-1){
+				nxt = g;
+				sum += 1;
+			}
+			if(D[v][nxt] > D[u][t] + sum){
+				D[v][nxt] = D[u][t] + sum;
+				if(sum == 0) Q.emplace_front(mp(v, nxt));
+				else Q.emplace_back(mp(v, nxt));
+			}
+		}
+	}
 }
 
 int main(){
-	ri2(n, k);
-	char s[10];
-	for(int i=0; i<10; i++){
-		for(int j=0; j<v[i].size(); j++){
-			if(v[i][j] == '1') mask[i] |= 1<<j;
+	ri2(n, m);
+	for(int i=0; i<m; i++) ri(d[i]);
+	ri2(g, r);
+	sort(d, d + m);
+	for(int i=0; i+1<m; i++){
+		dis[i] = abs(d[i] - d[i+1]);
+	}
+	BFS();
+	int ans = -1;
+	for(int i=0; i<=g; i++){
+		if(D[m-1][i] < inf){
+			if(ans == -1 or ans > D[m-1][i] * (r + g) + g - i){
+				ans = D[m-1][i] * (r + g) + g - i;
+			}
 		}
 	}
-	for(int i=0; i<n; i++){
-		scanf("%s",s);
-		for(int j=0; s[j]; j++){
-			if(s[j] == '1') a[i] |= 1<<j;
-		}
-	}
-	if(DP(0,k)){
-		int left = k;
-		for(int i=0; i<n; i++){
-			putchar('0' + choice[i][left]);
-			left -= __builtin_popcount(a[i] ^ mask[choice[i][left]]);
-		}
-		puts("");
-	}
-	else puts("-1");
+	printf("%d\n",ans);
 	return 0;
 }

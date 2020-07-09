@@ -101,66 +101,51 @@ int modInverso(int a, int m){
 *************P*L*A*N*T*I*L*L*A************
 *****************************************/
 
-/*
-	Author: Racso Galvan
-
-	Idea:
-
-	- 
-
-*/
-
-const int N = 2000+5;
-
-string v[] = {"1110111", "0010010", "1011101", "1011011", "0111010", "1101011", "1101111", "1010010", "1111111", "1111011"};
+const int N = 100000+5;
+const int LOG = 18;
 
 int n;
-int k;
+int q;
 int a[N];
-int mask[11];
-bool vis[N][N];
-bool memo[N][N];
-int choice[N][N];
+int STMax[N][LOG];
+int STMin[N][LOG];
 
-bool DP(int pos, int left){
-	if(pos == n) return left == 0;
-	if(vis[pos][left]) return memo[pos][left];
-	bool ans = false;
-	for(int i=9; i>=0; i--){
-		if((mask[i] & a[pos]) != a[pos]) continue;
-		int changes = __builtin_popcount(a[pos] ^ mask[i]);
-		if(left >= changes and DP(pos + 1, left - changes)){
-			choice[pos][left] = i;
-			ans = true;
-			break;
-		}
-	}
-	vis[pos][left] = true;
-	return memo[pos][left] = ans;
+int queryMax(int l, int r){
+	int d = r - l + 1;
+	int k = 31 - __builtin_clz(d);
+	int dis = 1<<k;
+	return max(STMax[l][k], STMax[r - dis + 1][k]);
+}
+
+int queryMin(int l, int r){
+	int d = r - l + 1;
+	int k = 31 - __builtin_clz(d);
+	int dis = 1<<k;
+	return min(STMin[l][k], STMin[r - dis + 1][k]);
 }
 
 int main(){
-	ri2(n, k);
-	char s[10];
-	for(int i=0; i<10; i++){
-		for(int j=0; j<v[i].size(); j++){
-			if(v[i][j] == '1') mask[i] |= 1<<j;
-		}
-	}
+	ri(n);
 	for(int i=0; i<n; i++){
-		scanf("%s",s);
-		for(int j=0; s[j]; j++){
-			if(s[j] == '1') a[i] |= 1<<j;
+		ri(a[i]);
+		STMax[i][0] = STMin[i][0] = a[i];
+	}
+	for(int d = 1; 1<<d <= n; d++){
+		int dis = 1<<(d-1);
+		for(int i=0; i + 2*dis - 1 < n; i++){
+			STMin[i][d] = min(STMin[i][d-1], STMin[i+dis][d-1]);
+			STMax[i][d] = max(STMax[i][d-1], STMax[i+dis][d-1]);
 		}
 	}
-	if(DP(0,k)){
-		int left = k;
-		for(int i=0; i<n; i++){
-			putchar('0' + choice[i][left]);
-			left -= __builtin_popcount(a[i] ^ mask[choice[i][left]]);
-		}
-		puts("");
+	ri(q);
+	int l, r;
+	while(q--){
+		ri2(l, r);
+		int min_in_range = queryMin(l, r);
+		int max_in_range = queryMax(l, r);
+		int max_out_range = max((l > 0? queryMax(0, l - 1) : 0), (r + 1 < n? queryMax(r + 1, n - 1) : 0));
+		int ans = max(2 * (min_in_range + max_out_range), min_in_range + max_in_range);
+		printf("%d.%d\n", ans >> 1, (ans & 1? 5 : 0));
 	}
-	else puts("-1");
 	return 0;
 }

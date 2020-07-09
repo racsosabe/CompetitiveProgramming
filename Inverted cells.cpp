@@ -101,66 +101,59 @@ int modInverso(int a, int m){
 *************P*L*A*N*T*I*L*L*A************
 *****************************************/
 
-/*
-	Author: Racso Galvan
+const int N = 1000+5;
 
-	Idea:
-
-	- 
-
-*/
-
-const int N = 2000+5;
-
-string v[] = {"1110111", "0010010", "1011101", "1011011", "0111010", "1101011", "1101111", "1010010", "1111111", "1111011"};
-
-int n;
-int k;
-int a[N];
-int mask[11];
-bool vis[N][N];
-bool memo[N][N];
-int choice[N][N];
-
-bool DP(int pos, int left){
-	if(pos == n) return left == 0;
-	if(vis[pos][left]) return memo[pos][left];
-	bool ans = false;
-	for(int i=9; i>=0; i--){
-		if((mask[i] & a[pos]) != a[pos]) continue;
-		int changes = __builtin_popcount(a[pos] ^ mask[i]);
-		if(left >= changes and DP(pos + 1, left - changes)){
-			choice[pos][left] = i;
-			ans = true;
-			break;
-		}
-	}
-	vis[pos][left] = true;
-	return memo[pos][left] = ans;
-}
+int n, m;
+char s[N][N];
+int cnt[N<<1];
+bool vis1[N][N];
+bool vis2[N][N];
 
 int main(){
-	ri2(n, k);
-	char s[10];
-	for(int i=0; i<10; i++){
-		for(int j=0; j<v[i].size(); j++){
-			if(v[i][j] == '1') mask[i] |= 1<<j;
+	ri2(n, m);
+	for(int i=1; i<=n; i++){
+		scanf("%s", s[i] + 1);
+	}
+	vis1[1][1] = s[1][1] == '.';
+	for(int i=1; i<=n; i++){
+		for(int j=1; j<=m; j++){
+			if(s[i][j] == '.'){
+				vis1[i][j] |= vis1[i-1][j] | vis1[i][j-1];
+			}
 		}
 	}
-	for(int i=0; i<n; i++){
-		scanf("%s",s);
-		for(int j=0; s[j]; j++){
-			if(s[j] == '1') a[i] |= 1<<j;
+	vis2[n][m] = s[n][m] == '.';
+	for(int i=n; i>=1; i--){
+		for(int j=m; j>=1; j--){
+			if(s[i][j] == '.'){
+				vis2[i][j] |= vis2[i+1][j] | vis2[i][j+1];
+			}
 		}
 	}
-	if(DP(0,k)){
-		int left = k;
-		for(int i=0; i<n; i++){
-			putchar('0' + choice[i][left]);
-			left -= __builtin_popcount(a[i] ^ mask[choice[i][left]]);
+	for(int i=1; i<=n; i++){
+		for(int j=1; j<=m; j++){
+			if(vis1[i][j] and vis2[i][j]) cnt[i + j] += 1;
 		}
-		puts("");
 	}
-	else puts("-1");
+	for(int i=1; i<=n; i++){
+		for(int j=1; j<=m; j++){
+			int res;
+			if(s[i][j] == '.'){
+				res = (cnt[i + j] > 1) or (!(vis1[i][j] and vis2[i][j]) and cnt[i + j] == 1);
+			}
+			else{
+				if(i == 1 and j == 1){
+					res = (vis2[i+1][j] | vis2[i][j+1]) | vis1[n][m] | (n == 1 and m == 1);
+				}
+				else if(i == n and j == m){
+					res = ((vis1[i-1][j] | vis1[i][j-1])) | vis1[n][m];
+				}
+				else{
+					res = ((vis1[i-1][j] | vis1[i][j-1]) & (vis2[i+1][j] | vis2[i][j+1])) | vis1[n][m];
+				}
+			}
+			printf("%d%c", res, " \n"[j == m]);
+		}
+	}
 	return 0;
 }

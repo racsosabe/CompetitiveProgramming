@@ -106,61 +106,68 @@ int modInverso(int a, int m){
 
 	Idea:
 
-	- 
+	- Ad-hoc + DP problem.
 
+	- First set the valid characters in an array of booleans.
+
+	- Second, compute the classic DP to check if substring [l,r] is a palindrome.
+
+	- Third, try using all the valid characters as a l and iterate from r = l to
+
+	  n-1 or until valid[r] is false.
+
+	- Complexity: O(n^2) per testcase. It can be done in O(n) with manacher by
+
+	  partitioning the string in all its valid substrings and computing the longest
+
+	  palindrome in each of them.
 */
 
-const int N = 2000+5;
-
-string v[] = {"1110111", "0010010", "1011101", "1011011", "0111010", "1101011", "1101111", "1010010", "1111111", "1111011"};
+const int N = 1000+5;
+const string mirrored = "AHIMOTUVWXY";
 
 int n;
-int k;
-int a[N];
-int mask[11];
-bool vis[N][N];
+char s[N];
+bool valid[N];
 bool memo[N][N];
-int choice[N][N];
 
-bool DP(int pos, int left){
-	if(pos == n) return left == 0;
-	if(vis[pos][left]) return memo[pos][left];
-	bool ans = false;
-	for(int i=9; i>=0; i--){
-		if((mask[i] & a[pos]) != a[pos]) continue;
-		int changes = __builtin_popcount(a[pos] ^ mask[i]);
-		if(left >= changes and DP(pos + 1, left - changes)){
-			choice[pos][left] = i;
-			ans = true;
-			break;
-		}
+void clearAll(){
+	for(int i=0; i<n; i++){
+		valid[i] = false;
+		for(int j=i; j<n; j++) memo[i][j] = false;
 	}
-	vis[pos][left] = true;
-	return memo[pos][left] = ans;
 }
 
 int main(){
-	ri2(n, k);
-	char s[10];
-	for(int i=0; i<10; i++){
-		for(int j=0; j<v[i].size(); j++){
-			if(v[i][j] == '1') mask[i] |= 1<<j;
-		}
-	}
-	for(int i=0; i<n; i++){
-		scanf("%s",s);
-		for(int j=0; s[j]; j++){
-			if(s[j] == '1') a[i] |= 1<<j;
-		}
-	}
-	if(DP(0,k)){
-		int left = k;
+	int t;
+	ri(t);
+	while(t--){
+		scanf("%s", s);
+		n = strlen(s);
 		for(int i=0; i<n; i++){
-			putchar('0' + choice[i][left]);
-			left -= __builtin_popcount(a[i] ^ mask[choice[i][left]]);
+			if(mirrored.find(s[i]) != string::npos) valid[i] = true;
 		}
-		puts("");
+		for(int i=0; i<n; i++){
+			memo[i][i] = true;
+		}
+		for(int L=2; L<=n; L++){
+			for(int i=0; i+L-1<n; i++){
+				int j = i + L - 1;
+				if(L == 2) memo[i][j] = s[i] == s[j];
+				else memo[i][j] = (s[i] == s[j]) & memo[i+1][j-1];
+			}
+		}
+		int ans = 0;
+		for(int i=0; i<n; i++){
+			if(valid[i]){
+				for(int j = i; j < n; j++){
+					if(!valid[j]) break;
+					if(memo[i][j]) ans = max(ans, j - i + 1);
+				}
+			}
+		}
+		printf("%d\n", ans);
+		if(t) clearAll();
 	}
-	else puts("-1");
 	return 0;
 }

@@ -106,61 +106,84 @@ int modInverso(int a, int m){
 
 	Idea:
 
-	- 
+	- Easy "prefix sum" problem
+
+	- Notice that we only care about the last joke the monkey heard: If that joke
+
+	  has a frequency greater than 1, then the monkey will be on its seat, otherwise
+
+	  there are two possible cases: The monkey hasn't heard any joke (it's on its seat)
+
+	  or the joke has a frequency equal to 1 (the monkey is laughing).
+
+	- We can propagate the queries by their id using a vector for each position
+
+	  from 1 to n, so we add the query id to position L = max(1, x - k) and add
+
+	  the query id in negative (that will mean that we must erase the query)
+
+	  to position R + 1 = min(n, x + k) + 1.
+
+	- We can iterate over all positions updating correspondingly and mantain an 
+
+	  array of frequencies so we can answer each position in O(logn) if we use
+
+	  a set to mantain the queries' ids.
+
+	- Complexity: O(n + mlogm) per test.
 
 */
 
-const int N = 2000+5;
-
-string v[] = {"1110111", "0010010", "1011101", "1011011", "0111010", "1101011", "1101111", "1010010", "1111111", "1111011"};
+const int N = 100000+5;
 
 int n;
-int k;
+int m;
+vi Q[N];
 int a[N];
-int mask[11];
-bool vis[N][N];
-bool memo[N][N];
-int choice[N][N];
+int L[N];
+int R[N];
+int cnt[N];
 
-bool DP(int pos, int left){
-	if(pos == n) return left == 0;
-	if(vis[pos][left]) return memo[pos][left];
-	bool ans = false;
-	for(int i=9; i>=0; i--){
-		if((mask[i] & a[pos]) != a[pos]) continue;
-		int changes = __builtin_popcount(a[pos] ^ mask[i]);
-		if(left >= changes and DP(pos + 1, left - changes)){
-			choice[pos][left] = i;
-			ans = true;
-			break;
-		}
+void clearAll(){
+	for(int i=1; i<=m; i++){
+		cnt[a[i]] = 0;
 	}
-	vis[pos][left] = true;
-	return memo[pos][left] = ans;
+	for(int i=1; i<=n+1; i++) Q[i].clear();
 }
 
 int main(){
-	ri2(n, k);
-	char s[10];
-	for(int i=0; i<10; i++){
-		for(int j=0; j<v[i].size(); j++){
-			if(v[i][j] == '1') mask[i] |= 1<<j;
+	int t;
+	ri(t);
+	while(t--){
+		ri2(n, m);
+		for(int i=1; i<=m; i++){
+			int x, l, k;
+			ri3(x, a[i], k);
+			L[i] = max(1, x - k);
+			R[i] = min(n, x + k);
+			Q[L[i]].emplace_back(i);
+			Q[R[i]+1].emplace_back(-i);
 		}
-	}
-	for(int i=0; i<n; i++){
-		scanf("%s",s);
-		for(int j=0; s[j]; j++){
-			if(s[j] == '1') a[i] |= 1<<j;
+		int ans = 0;
+		set<int> S;
+		for(int i=1; i<=n; i++){
+			for(auto x : Q[i]){
+				if(x < 0){
+					cnt[a[-x]] -= 1;
+					S.erase(-x);
+				}
+				else{
+					S.emplace(x);
+					cnt[a[x]] += 1;
+				}
+			}
+			if(S.empty()) ans += 1;
+			else{
+				if(cnt[a[*S.rbegin()]] > 1) ans += 1;
+			}
 		}
+		printf("%d\n", ans);
+		if(t) clearAll();
 	}
-	if(DP(0,k)){
-		int left = k;
-		for(int i=0; i<n; i++){
-			putchar('0' + choice[i][left]);
-			left -= __builtin_popcount(a[i] ^ mask[choice[i][left]]);
-		}
-		puts("");
-	}
-	else puts("-1");
 	return 0;
 }

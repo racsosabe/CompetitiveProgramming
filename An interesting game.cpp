@@ -101,66 +101,32 @@ int modInverso(int a, int m){
 *************P*L*A*N*T*I*L*L*A************
 *****************************************/
 
-/*
-	Author: Racso Galvan
-
-	Idea:
-
-	- 
-
-*/
-
-const int N = 2000+5;
-
-string v[] = {"1110111", "0010010", "1011101", "1011011", "0111010", "1101011", "1101111", "1010010", "1111111", "1111011"};
+const int N = 200000+5;
+const int MAX = 100+5;
 
 int n;
-int k;
-int a[N];
-int mask[11];
-bool vis[N][N];
-bool memo[N][N];
-int choice[N][N];
-
-bool DP(int pos, int left){
-	if(pos == n) return left == 0;
-	if(vis[pos][left]) return memo[pos][left];
-	bool ans = false;
-	for(int i=9; i>=0; i--){
-		if((mask[i] & a[pos]) != a[pos]) continue;
-		int changes = __builtin_popcount(a[pos] ^ mask[i]);
-		if(left >= changes and DP(pos + 1, left - changes)){
-			choice[pos][left] = i;
-			ans = true;
-			break;
-		}
-	}
-	vis[pos][left] = true;
-	return memo[pos][left] = ans;
-}
+int F[MAX];
+int memo[MAX][N];
 
 int main(){
-	ri2(n, k);
-	char s[10];
-	for(int i=0; i<10; i++){
-		for(int j=0; j<v[i].size(); j++){
-			if(v[i][j] == '1') mask[i] |= 1<<j;
-		}
-	}
+	ri(n);
 	for(int i=0; i<n; i++){
-		scanf("%s",s);
-		for(int j=0; s[j]; j++){
-			if(s[j] == '1') a[i] |= 1<<j;
+		int x;
+		ri(x);
+		F[x] += 1;
+	}
+	memo[0][0] = 1;
+	for(int i = 1; i <= 100; i++){
+		for(int val = 0; 2 * val <= n; val++){
+			memo[i][val] = memo[i-1][val];
+			if(F[i]){
+				int previous = val ^ F[i];
+				if(previous <= 2 * n){
+					memo[i][val] = add(memo[i][val], memo[i-1][previous]);
+				}
+			}
 		}
 	}
-	if(DP(0,k)){
-		int left = k;
-		for(int i=0; i<n; i++){
-			putchar('0' + choice[i][left]);
-			left -= __builtin_popcount(a[i] ^ mask[choice[i][left]]);
-		}
-		puts("");
-	}
-	else puts("-1");
+	printf("%d\n", memo[100][0]);
 	return 0;
 }

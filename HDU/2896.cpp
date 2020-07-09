@@ -106,61 +106,126 @@ int modInverso(int a, int m){
 
 	Idea:
 
-	- 
+	- Strict ML Aho-Corasick problem.
 
+	- First, notice that you can use the trie array as a go array after inserting
+
+	  all the patterns.
+
+	- Also you must notice that if you want to mark a node as visited you can
+
+	  just assign a timestamp (let it be the site ID) to optimize a little the
+
+	  execution time.
+
+	- Don't use more memory that you would need, so an array of size [4,6] should
+
+	  be enough for storing the number of viruses (since the maximum is 3 per
+	  
+	  site). After getting the viruses IDs you will sort in O(1).
+
+	  Also, the maximum ASCII value of a visible character is 126.
+
+	- Complexity: O(n * |E| + m), where n is the sum
+
+	  of lengths of the patterns and m is the sum of lengths of queries.
 */
 
-const int N = 2000+5;
-
-string v[] = {"1110111", "0010010", "1011101", "1011011", "0111010", "1101011", "1101111", "1010010", "1111111", "1111011"};
+const int SUML = 500 * 200 + 3;
+const int N = 500+5;
+const int E = 128;
 
 int n;
-int k;
-int a[N];
-int mask[11];
-bool vis[N][N];
-bool memo[N][N];
-int choice[N][N];
+int m;
+int nodes;
+int ans[6];
+int pat[SUML];
+int vis[SUML];
+int trie[E][SUML];
+int suf[SUML];
 
-bool DP(int pos, int left){
-	if(pos == n) return left == 0;
-	if(vis[pos][left]) return memo[pos][left];
-	bool ans = false;
-	for(int i=9; i>=0; i--){
-		if((mask[i] & a[pos]) != a[pos]) continue;
-		int changes = __builtin_popcount(a[pos] ^ mask[i]);
-		if(left >= changes and DP(pos + 1, left - changes)){
-			choice[pos][left] = i;
-			ans = true;
-			break;
+void insert(int npat){
+	int pos = 0;
+	char c = getchar();
+	while(c != '\n'){
+		int nxt = c;
+		if(!trie[nxt][pos]){
+			trie[nxt][pos] = nodes++;
+		}
+		pos = trie[nxt][pos];
+		c = getchar();
+	}
+	pat[pos] = npat;
+}
+
+void BFS(int src){
+	queue<int> Q;
+	Q.emplace(src);
+	while(!Q.empty()){
+		int u = Q.front();
+		Q.pop();
+		for(int i = 0; i < E; i++){
+			if(trie[i][u]){
+				int v = trie[i][u];
+			suf[v] = u ? trie[i][suf[u]] : 0;
+				Q.emplace(v);
+			}
+			else{
+				trie[i][u] = u ? trie[i][suf[u]] : 0;
+			}
 		}
 	}
-	vis[pos][left] = true;
-	return memo[pos][left] = ans;
+}
+
+void buildAutomaton(int npat){
+	nodes = 1;
+	for(int i = 1; i <= npat; i++){
+		insert(i);
+	}
+	BFS(0);
+}
+
+void mark(int u, int id){
+	while(u > 0 and vis[u] < id){
+		if(pat[u]){
+			ans[++ans[0]] = pat[u];
+		}
+		vis[u] = id;
+		u = suf[u];
+	}
+}
+
+bool query(int id){
+	memset(ans, 0, sizeof ans);
+	char c = getchar();
+	int state = 0;
+	while(c != '\n'){
+		state = trie[c][state];
+		mark(state, id);
+		c = getchar();
+	}
+	if(ans[0]){
+		sort(ans + 1, ans + ans[0] + 1);
+		printf("web %d:", id);
+		for(int i = 1; i <= ans[0]; i++){
+			printf(" %d", ans[i]);
+		}
+		putchar('\n');
+		return true;
+	}
+	else return false;
 }
 
 int main(){
-	ri2(n, k);
-	char s[10];
-	for(int i=0; i<10; i++){
-		for(int j=0; j<v[i].size(); j++){
-			if(v[i][j] == '1') mask[i] |= 1<<j;
-		}
+	ri(n);
+	getchar();
+	buildAutomaton(n);
+	ri(m);
+	getchar();
+	int sites = 0;
+	for(int j = 1; j <= m; j++){
+		sites += query(j);
 	}
-	for(int i=0; i<n; i++){
-		scanf("%s",s);
-		for(int j=0; s[j]; j++){
-			if(s[j] == '1') a[i] |= 1<<j;
-		}
-	}
-	if(DP(0,k)){
-		int left = k;
-		for(int i=0; i<n; i++){
-			putchar('0' + choice[i][left]);
-			left -= __builtin_popcount(a[i] ^ mask[choice[i][left]]);
-		}
-		puts("");
-	}
-	else puts("-1");
+	printf("total: %d\n", sites);
 	return 0;
 }

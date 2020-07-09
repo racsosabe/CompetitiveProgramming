@@ -106,61 +106,76 @@ int modInverso(int a, int m){
 
 	Idea:
 
-	- 
+	- Implementation problem + Fast I/O.
+
+	- Just store the strings with exchange rate in a map.
+
+	- Complexity: O((n + m)logn|s|) where |s| is the maximum size of the strings per test.
 
 */
 
-const int N = 2000+5;
+const int N = 100000+5;
 
-string v[] = {"1110111", "0010010", "1011101", "1011011", "0111010", "1101011", "1101111", "1010010", "1111111", "1111011"};
+int n, m;
+double r[N];
+map<string, int> change;
 
-int n;
-int k;
-int a[N];
-int mask[11];
-bool vis[N][N];
-bool memo[N][N];
-int choice[N][N];
-
-bool DP(int pos, int left){
-	if(pos == n) return left == 0;
-	if(vis[pos][left]) return memo[pos][left];
-	bool ans = false;
-	for(int i=9; i>=0; i--){
-		if((mask[i] & a[pos]) != a[pos]) continue;
-		int changes = __builtin_popcount(a[pos] ^ mask[i]);
-		if(left >= changes and DP(pos + 1, left - changes)){
-			choice[pos][left] = i;
-			ans = true;
-			break;
-		}
+string readString(){
+	char c = getchar();
+	string ans = "";
+	while(c != ' ' and c != '\n'){
+		ans.push_back(c);
+		c = getchar();
 	}
-	vis[pos][left] = true;
-	return memo[pos][left] = ans;
+	return ans;
+}
+
+double readDouble(){
+	char c = getchar();
+	double ans = 0.0;
+	double p = 0.1;
+	bool decimal = false;
+	while(c != ' ' and c != '\n'){
+		if(c == '.'){
+			decimal = true;
+		}
+		else{
+			if(decimal){
+				ans += p * (c - '0');
+				p *= 0.1;
+			}
+			else{
+				ans = 10 * ans + c - '0';
+			}
+		}
+		c = getchar();
+	}
+	return ans;
 }
 
 int main(){
-	ri2(n, k);
-	char s[10];
-	for(int i=0; i<10; i++){
-		for(int j=0; j<v[i].size(); j++){
-			if(v[i][j] == '1') mask[i] |= 1<<j;
+	int t;
+	ri(t);
+	string s;
+	r[0] = 1.0;
+	while(t--){
+		ri2(n, m);
+		change.clear();
+		change["JD"] = 0;
+		getchar();
+		for(int i=1; i<=n; i++){
+			s = readString();
+			r[i] = readDouble();
+			change[s] = i;
 		}
-	}
-	for(int i=0; i<n; i++){
-		scanf("%s",s);
-		for(int j=0; s[j]; j++){
-			if(s[j] == '1') a[i] |= 1<<j;
+		double ans = 0.0;
+		for(int i=0; i<m; i++){
+			double amount;
+			amount = readDouble();
+			s = readString();
+			ans += r[change[s]] * amount;
 		}
+		cout << setprecision(6) << fixed << ans << endl;
 	}
-	if(DP(0,k)){
-		int left = k;
-		for(int i=0; i<n; i++){
-			putchar('0' + choice[i][left]);
-			left -= __builtin_popcount(a[i] ^ mask[choice[i][left]]);
-		}
-		puts("");
-	}
-	else puts("-1");
 	return 0;
 }

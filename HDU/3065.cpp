@@ -106,61 +106,122 @@ int modInverso(int a, int m){
 
 	Idea:
 
-	- 
+	- Classic Aho-Corasick Automaton problem.
 
+	- Just compute the frecuencies of each node of the automaton and propagate
+
+	  it to its suffix link.
+
+	- To take a correct order the propagating nodes must be visited by non increasing
+
+	  depth (can be sorted using counting sort or normal std::sort).
+
+	- After this process, if you set the terminal node for each pattern, you 
+
+	  can get its frequency in O(1).
+
+	- Complexity: O(n * (log n + |E|) + m), where n is the sum of lengths of the patterns
+
+	  and m is the length of the text.
 */
 
-const int N = 2000+5;
-
-string v[] = {"1110111", "0010010", "1011101", "1011011", "0111010", "1101011", "1101111", "1010010", "1111111", "1111011"};
+const int SUML = 1000 * 50 + 3;
+const int N = 1000+5;
+const int E = 128;
 
 int n;
-int k;
-int a[N];
-int mask[11];
-bool vis[N][N];
-bool memo[N][N];
-int choice[N][N];
+int nodes;
+int pat[N];
+int h[SUML];
+char s[N][55];
+int suf[SUML];
+int frec[SUML];
+int trie[SUML][E];
 
-bool DP(int pos, int left){
-	if(pos == n) return left == 0;
-	if(vis[pos][left]) return memo[pos][left];
-	bool ans = false;
-	for(int i=9; i>=0; i--){
-		if((mask[i] & a[pos]) != a[pos]) continue;
-		int changes = __builtin_popcount(a[pos] ^ mask[i]);
-		if(left >= changes and DP(pos + 1, left - changes)){
-			choice[pos][left] = i;
-			ans = true;
-			break;
+void addNode(int u){
+	suf[u] = 0;
+	for(int i = 0; i < E; i++){
+		trie[u][i] = 0;
+	}
+	frec[u] = 0;
+}
+
+void insert(int npat){
+	int pos = 0;
+	for(int i = 0; s[npat][i]; i++){
+		int nxt = s[npat][i];
+		if(!trie[pos][nxt]){
+			h[nodes] = i + 1;
+			addNode(nodes);
+			trie[pos][nxt] = nodes++;
+		}
+		pos = trie[pos][nxt];
+	}
+	pat[npat] = pos;
+}
+
+void BFS(int src){
+	queue<int> Q;
+	Q.emplace(src);
+	while(!Q.empty()){
+		int u = Q.front();
+		Q.pop();
+		for(int i = 0; i < E; i++){
+			if(trie[u][i]){
+				int v = trie[u][i];
+				suf[v] = u ? trie[suf[u]][i] : 0;
+				Q.emplace(v);
+			}
+			else{
+				trie[u][i] = u ? trie[suf[u]][i] : 0;
+			}
 		}
 	}
-	vis[pos][left] = true;
-	return memo[pos][left] = ans;
+}
+
+void buildAutomaton(int npat){
+	nodes = 1;
+	addNode(0);
+	for(int i = 1; i <= npat; i++){
+		char c = getchar();
+		int pos = 0;
+		while(c != '\n'){
+			s[i][pos++] = c;
+			c = getchar();
+		}
+		s[i][pos] = '\0';
+		insert(i);
+	}
+	BFS(0);
+}
+
+void solve(){
+	char c = getchar();
+	int state = 0;
+	while(c != '\n'){
+		state = trie[state][c];
+		frec[state] += 1;
+		c = getchar();
+	}
+	vector<int> p(nodes);
+	iota(all(p), 0);
+	sort(all(p), [&] (int i, int j){
+		return h[i] > h[j];
+	});
+	for(int u : p){
+		frec[suf[u]] += frec[u];
+	}
 }
 
 int main(){
-	ri2(n, k);
-	char s[10];
-	for(int i=0; i<10; i++){
-		for(int j=0; j<v[i].size(); j++){
-			if(v[i][j] == '1') mask[i] |= 1<<j;
+	while(ri(n) == 1){
+		getchar();
+		buildAutomaton(n);
+		solve();
+		for(int i = 1; i <= n; i++){
+			if(!frec[pat[i]]) continue;
+			printf("%s: %d\n", s[i], frec[pat[i]]);
 		}
 	}
-	for(int i=0; i<n; i++){
-		scanf("%s",s);
-		for(int j=0; s[j]; j++){
-			if(s[j] == '1') a[i] |= 1<<j;
-		}
-	}
-	if(DP(0,k)){
-		int left = k;
-		for(int i=0; i<n; i++){
-			putchar('0' + choice[i][left]);
-			left -= __builtin_popcount(a[i] ^ mask[choice[i][left]]);
-		}
-		puts("");
-	}
-	else puts("-1");
 	return 0;
 }

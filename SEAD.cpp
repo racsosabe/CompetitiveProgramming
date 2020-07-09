@@ -101,66 +101,57 @@ int modInverso(int a, int m){
 *************P*L*A*N*T*I*L*L*A************
 *****************************************/
 
-/*
-	Author: Racso Galvan
+const int N = 100000+5;
+const int LOG = 18;
 
-	Idea:
-
-	- 
-
-*/
-
-const int N = 2000+5;
-
-string v[] = {"1110111", "0010010", "1011101", "1011011", "0111010", "1101011", "1101111", "1010010", "1111111", "1111011"};
-
-int n;
-int k;
+int n, m;
 int a[N];
-int mask[11];
-bool vis[N][N];
-bool memo[N][N];
-int choice[N][N];
+int b[N];
+int ST[N][LOG];
 
-bool DP(int pos, int left){
-	if(pos == n) return left == 0;
-	if(vis[pos][left]) return memo[pos][left];
-	bool ans = false;
-	for(int i=9; i>=0; i--){
-		if((mask[i] & a[pos]) != a[pos]) continue;
-		int changes = __builtin_popcount(a[pos] ^ mask[i]);
-		if(left >= changes and DP(pos + 1, left - changes)){
-			choice[pos][left] = i;
-			ans = true;
-			break;
-		}
-	}
-	vis[pos][left] = true;
-	return memo[pos][left] = ans;
+int query(int l, int r){
+	int d = r - l + 1;
+	int k = 31 - __builtin_clz(d);
+	int dis = 1<<k;
+	return min(ST[l][k], ST[r - dis + 1][k]);
 }
 
 int main(){
-	ri2(n, k);
-	char s[10];
-	for(int i=0; i<10; i++){
-		for(int j=0; j<v[i].size(); j++){
-			if(v[i][j] == '1') mask[i] |= 1<<j;
+	ri(n);
+	for(int i=1; i<=n; i++){
+		ri(a[i]);
+	}
+	a[n+1] = 1e9;
+	for(int i=1; i<=n; i++){
+		b[i] = a[i] - a[i+1];
+		ST[i][0] = b[i];
+	}
+	for(int d = 1; 1<<d <= n; d++){
+		int dis = 1<<(d-1);
+		for(int i=1; i + 2*dis - 1 <= n; i++){
+			ST[i][d] = min(ST[i][d-1], ST[i+dis][d-1]);
 		}
 	}
-	for(int i=0; i<n; i++){
-		scanf("%s",s);
-		for(int j=0; s[j]; j++){
-			if(s[j] == '1') a[i] |= 1<<j;
+	ri(m);
+	int t, d;
+	while(m--){
+		ri2(t, d);
+		int lo = 1, hi = n;
+		while(lo < hi){
+			int mi = lo + (hi - lo + 1) / 2;
+			if(a[mi] <= t) lo = mi;
+			else hi = mi-1;
 		}
-	}
-	if(DP(0,k)){
-		int left = k;
-		for(int i=0; i<n; i++){
-			putchar('0' + choice[i][left]);
-			left -= __builtin_popcount(a[i] ^ mask[choice[i][left]]);
+		int k = lo;
+		lo = 1; hi = k;
+		while(lo < hi){
+			int mi = lo + (hi - lo) / 2;
+			if(query(mi, k - 1) < -d) lo = mi+1;
+			else hi = mi;
 		}
-		puts("");
+		printf("%d\n", lo);
 	}
-	else puts("-1");
+
+
 	return 0;
 }

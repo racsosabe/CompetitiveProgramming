@@ -101,66 +101,109 @@ int modInverso(int a, int m){
 *************P*L*A*N*T*I*L*L*A************
 *****************************************/
 
-/*
-	Author: Racso Galvan
-
-	Idea:
-
-	- 
-
-*/
-
-const int N = 2000+5;
-
-string v[] = {"1110111", "0010010", "1011101", "1011011", "0111010", "1101011", "1101111", "1010010", "1111111", "1111011"};
+const int N = 100000+5;
 
 int n;
-int k;
+vi G[N];
 int a[N];
-int mask[11];
-bool vis[N][N];
-bool memo[N][N];
-int choice[N][N];
+int b[N];
+int w[N];
+int h[N];
+ll ans[N];
+int par[N];
+viii edges;
+bool vis[N];
+int root[N];
+int sizes[N];
+int subtree[N];
 
-bool DP(int pos, int left){
-	if(pos == n) return left == 0;
-	if(vis[pos][left]) return memo[pos][left];
-	bool ans = false;
-	for(int i=9; i>=0; i--){
-		if((mask[i] & a[pos]) != a[pos]) continue;
-		int changes = __builtin_popcount(a[pos] ^ mask[i]);
-		if(left >= changes and DP(pos + 1, left - changes)){
-			choice[pos][left] = i;
-			ans = true;
-			break;
-		}
+int get(int x){
+	return par[x] == x? x : par[x] = get(par[x]);
+}
+
+void join(int a, int b){
+	a = get(a);
+	b = get(b);
+	if(a == b) return;
+	if(sizes[a] > sizes[b]) swap(a, b);
+	par[a] = b;
+	sizes[b] += sizes[a];
+}
+
+void DFS(int u, int r){
+	vis[u] = true;
+	root[u] = r;
+	subtree[u] = sizes[get(u)];
+	for(int v : G[u]){
+		if(vis[v]) continue;
+		h[v] = h[u] + 1;
+		DFS(v, r);
+		subtree[u] += subtree[v];
 	}
-	vis[pos][left] = true;
-	return memo[pos][left] = ans;
+}
+
+void solve(int L, int R, vi &p){
+	vector<int> nodes;
+	for(int i = L; i < R; i++){
+		int u = get(a[p[i]]);
+		int v = get(b[p[i]]);
+		G[u].emplace_back(v);
+		G[v].emplace_back(u);
+		nodes.emplace_back(u);
+		nodes.emplace_back(v);
+	}
+	for(auto x : nodes){
+		if(vis[x]) continue;
+		DFS(x, x);
+	}
+	for(int i = L; i < R; i++){
+		int u = get(a[p[i]]);
+		int v = get(b[p[i]]);
+		int total = subtree[root[u]];
+		if(h[u] > h[v]) swap(u, v);
+		ans[p[i]] = 2LL * subtree[v] * (total - subtree[v]);
+	}
+	for(auto x : nodes){
+		vis[x] = false;
+		G[x].clear();
+		h[x] = 0;
+		root[x] = 0;
+	}
 }
 
 int main(){
-	ri2(n, k);
-	char s[10];
-	for(int i=0; i<10; i++){
-		for(int j=0; j<v[i].size(); j++){
-			if(v[i][j] == '1') mask[i] |= 1<<j;
-		}
+	ri(n);
+	for(int i=1; i<n; i++){
+		ri3(a[i], b[i], w[i]);
 	}
-	for(int i=0; i<n; i++){
-		scanf("%s",s);
-		for(int j=0; s[j]; j++){
-			if(s[j] == '1') a[i] |= 1<<j;
-		}
+	for(int i=1; i<=n; i++){
+		par[i] = i;
+		sizes[i] = 1;
 	}
-	if(DP(0,k)){
-		int left = k;
-		for(int i=0; i<n; i++){
-			putchar('0' + choice[i][left]);
-			left -= __builtin_popcount(a[i] ^ mask[choice[i][left]]);
+	vector<int> p(n - 1);
+	iota(all(p), 1);
+	sort(all(p), [&] (int i, int j){
+		return w[i] < w[j];
+	});
+	int L = 0, R = 0;
+	while(L < n - 1){
+		while(R < n - 1 and w[p[L]] == w[p[R]]){
+			R += 1;
 		}
-		puts("");
+		solve(L, R, p);
+		for(int i = L; i < R; i++){
+			join(a[p[i]], b[p[i]]);
+		}
+		L = R;
 	}
-	else puts("-1");
+	ll best = *max_element(ans + 1, ans + n);
+	vector<int> res;
+	for(int i=1; i<n; i++){
+		if(ans[i] == best) res.emplace_back(i);
+	}
+	printf("%lld %d\n", best, (int)res.size());
+	for(int i=0; i<res.size(); i++){
+		printf("%d%c", res[i], " \n"[i + 1 == res.size()]);
+	}
 	return 0;
 }

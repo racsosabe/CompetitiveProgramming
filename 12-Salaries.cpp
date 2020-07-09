@@ -102,7 +102,11 @@ int modInverso(int a, int m){
 *****************************************/
 
 /*
-	
+	Author: Racso Galvan
+
+	Idea:
+
+	- 
 	
 	
 */
