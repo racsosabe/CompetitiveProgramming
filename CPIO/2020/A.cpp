@@ -132,6 +132,8 @@ int modInverso(int a, int m){
 
 	  Caso C: C > 0 -> 3 C / 2 > 0 -> 3 C / 2 + L / 2 > L / 2.
 
+	  Así que imprimiremos la última letra.
+
 	- Complejidad: O(n)
 */
 
