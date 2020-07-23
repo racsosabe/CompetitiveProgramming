@@ -1,11 +1,19 @@
-3
-aaa
-bbb
-ccc
-aaaabbbbcccc
-3
-aaa
-bbb
-ccc
-aaaabbbbcccc
-
+5
+6 2
+0 -6
+-2 2
+-6 -8
+4 0
+12
+Q
+C 4 4
+Q
+F
+F
+F
+C -6 -2
+Q
+B
+B
+C -4 -6
+Q
