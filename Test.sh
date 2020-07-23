@@ -1,9 +1,9 @@
 #!/bin/bash
 
-g++-7 $1 grader.cpp -Wall -static -O2 -lm -m64 -s -w -std=gnu++17 -fmax-errors=512
+g++ $1 grader.cpp -Wall -static -O2 -lm -m64 -s -w -std=gnu++17 -fmax-errors=512
 g++ Gen.cpp -o Gen
 
-for((i = 0; i < 100; i++)); do
+for((i = 0; i < 500; i++)); do
 	./Gen > int
 	echo "Running on test $i"
 	./a.out < int > out
