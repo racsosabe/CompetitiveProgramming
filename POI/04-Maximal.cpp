@@ -101,6 +101,34 @@ int modInverso(int a, int m){
 *************P*L*A*N*T*I*L*L*A************
 *****************************************/
 
+/*
+	Author: Racso Galvan
+
+	Idea:
+
+	- Number Theory and DP problem.
+
+	- We want to generate a set of integers a_{i} such that:
+
+	  LCM(a) is maximum and sum(a) = n.
+
+	- Notice that the lexicographically minimum permutation will be the join of 
+	
+	  contiguous cycles of length a_{i} (sorted) and shifted once to the left.
+
+	- We want to maximize the LCM but achieving the lexicographically minimum
+
+	  sequence of lengths a.
+
+	- We can just use a_{i} = 1 or a power of a prime for all i and that's enough
+
+	  to get the wanted answer.
+
+	- Rebuild the answer in O(n).
+
+	- Complexity: O(n^2)
+*/
+
 const int MAX = 1e4 + 5;
 const int PRIMES = 300;
 
