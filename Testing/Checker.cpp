@@ -126,9 +126,10 @@ ll readData(InStream &in){
 
 int main(int argc, char* argv[]){
 	registerTestlibCmd(argc,argv);
-	ll k = inf.readLong();
-	ll part = readData(ouf);
-	if(k != part) quitf(_wa, "Wrong Answer");
+	ll jans = ans.readLong();
+	ll pans = ouf.readLong();
+	if(jans < pans) quitf(_fail, "Failed. Participant has a better answer");
+	if(pans < jans) quitf(_wa, "Wrong Answer. Jury has a better answer");
 	quitf(_ok, "Accepted");
 	return 0;
 }

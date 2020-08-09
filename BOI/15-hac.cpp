@@ -101,54 +101,89 @@ int modInverso(int a, int m){
 *************P*L*A*N*T*I*L*L*A************
 *****************************************/
 
-const int N = 15;
+/*
+	Author: Racso Galvan
+
+	Idea:
+
+	- Min Queue problem.
+
+	- Just notice that if we start in a computer i, then the final answer will
+
+	  be a contiguous cyclic range that contains i and has length ceil(n / 2).
+
+	- Now, since the computer plays optimally, it can just choose an optimal
+
+	  
+	  position such that we can't go further from it, thus making us take some
+
+	  fixed range after all.
+
+	- So, the answer starting in computer i is the minimum of such ranges.
+
+	- If we use a Min Queue to mantain the minimum of all those precomputed ranges'
+
+	  values, we achieve a linear complexity.
+
+	- Complexity: O(n)
+*/
+
+const int N = 1500000+5;
 
 int n;
 int a[N];
+ll ac[N];
+int len[2];
+int res[N];
+int st1[2][N];
+int st2[2][N];
 
-int solve(vi &vis, int turn, int cnt){
-	if(cnt == 0){
-		return 0;
-	}
-	int ans = turn == 1? 0 : 2e9;
-	for(int i = 0; i < n; i++){
-		if(vis[i]) continue;
-		int nxt = add(i, 1, n);
-		int prv = add(i, n - 1, n);
-		if(vis[nxt] == turn or vis[prv] == turn){
-			vis[i] = turn;
-			if(turn == 1){
-				ans = max(ans, a[i] + solve(vis, 3^turn, cnt - 1));
-			}
-			else{
-				ans = min(ans, solve(vis, 3^turn, cnt - 1));
-			}
-			vis[i] = 0;
+void insert(int x){
+	len[0]++;
+	st1[0][len[0]] = x;
+	st1[1][len[0]] = min(st1[1][len[0]-1], x);
+}
+
+void remove(){
+	if(!len[1]){
+		for(int j = len[0]; j >= 1; j--){
+			len[1]++;
+			int x = st1[0][j];
+			st2[0][len[1]] = x;
+			st2[1][len[1]] = min(x, st2[1][len[1]-1]);
 		}
+		len[0] = 0;
 	}
-	return ans;
+	len[1] -= 1;
+}
+
+int getMin(){
+	return min(st2[1][len[1]], st1[1][len[0]]);
 }
 
 int main(){
 	ri(n);
-	for(int i = 0; i < n; i++){
+	for(int i = 1; i <= n; i++){
 		ri(a[i]);
+		ac[i] = ac[i-1] + a[i];
+	}
+	for(int i = n+1; i <= n+n+n; i++){
+		a[i] = a[i - n];
+		ac[i] = ac[i - 1] + a[i];
+	}
+	int moves = (n + 1) / 2;
+	for(int i = 1; i + moves - 1 <= n+n+n; i++){
+		res[i] = ac[i + moves - 1] - ac[i - 1];
 	}
 	int ans = 0;
-	vector<int> vis(n, 0);
-	for(int i = 0; i < n; i++){
-		vis[i] = 1;
-		int res = a[i];
-		int best_machine = 2e9;
-		for(int j = 0; j < n; j++){
-			if(vis[j]) continue;
-			vis[j] = 2;
-			best_machine = min(best_machine, solve(vis, 1, n - 2));
-			vis[j] = 0;
-		}
-		res += best_machine;
-		ans = max(ans, res);
-		vis[i] = 0;
+	st1[0][0] = st2[0][0] = st1[1][0] = st2[1][0] = 2e9;
+	for(int i = n + 2 - moves; i <= n; i++){
+		insert(res[i]);
+	}
+	for(int i = n + 1; i <= n + n; i++){
+		insert(res[i]);
+		if(i - moves >= n + 2 - moves) remove();
+		ans = max(ans, getMin());
 	}
 	printf("%d\n", ans);
 	return 0;

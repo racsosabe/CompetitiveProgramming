@@ -111,7 +111,10 @@ int random(int l, int r){
 }
 
 int main(int argc, char* argv[]){
-	int n = random(1,10000);
-	cout << n << endl;
+	int n = random(2, 10);
+	printf("%d\n", n);
+	for(int i = 0; i < n; i++){
+		printf("%d%c", random(1, 2000), " \n"[i + 1 == n]);
+	}
 	return 0;
 }
