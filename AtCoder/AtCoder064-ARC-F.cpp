@@ -1,6 +1,54 @@
 #include<bits/stdc++.h>
 using namespace::std;
 
+/*
+	Author: Racso Galvan
+
+	Idea:
+
+	- Strings and combinatorics problem.
+
+	- First, notice that if we fix the period of the string as d (d must divide n)
+
+	  then we will have only d different strings, because in the d-th shift we
+
+	  will get the same original string.
+
+	- Observation 1: The period string must be a palindrome.
+
+	- We can partition all the possible strings by their minimal period, thus we
+
+	  should analyze only D(n) values.
+
+	- Period X is the minimal period if none of its divisors is a period too, so
+
+	  we can compute f(X) and take f(Y) for all Y | X, which are also divisors
+
+	  of n.
+
+	- Notice that f(X) = k^ceil(X / 2), because we will have the first ceil(X / 2)
+
+	  characters fixed and the other ones must reflect them.
+
+	- Now, once we have f(X) for each X | n, we must know how many strings does
+
+	  it contribute with. 
+
+	  If we have an even X, we should notice that if we shift X / 2 characters,
+
+	  our result will be another palindrome string of length n with minimal period
+
+	  X, so we will be counting twice this string, so we only have X / 2 different
+
+	  strings.
+
+	  Otherwise, we won't have repetitions, so we have X different strings.
+
+	- Finally, our expression will be the sum of X * f(X) for all odd X and (X / 2) * f(X) for all even X.
+
+	- Complexity: O(D(n)^2)
+*/
+
 const int MOD = 1000000000 + 7;
 
 int mul(int a, int b){
@@ -17,53 +65,48 @@ int pow_mod(int a, int b){
 	return r;
 }
 
-const int N = 100000 + 5;
-
 int n;
 int k;
-int par[N];
-int sizes[N];
 
-int get(int x){
-	return par[x] == x ? x : par[x] = get(par[x]);
+vector<int> getDivisors(int x){
+	vector<int> v;
+	for(int i = 1; i * i <= x; i++){
+		if(x % i == 0){
+			v.emplace_back(i);
+			if(i * i != x) v.emplace_back(x / i);
+		}
+	}
+	sort(v.begin(), v.end());
+	return v;
 }
 
-void join(int a, int b){
-	a = get(a);
-	b = get(b);
-	if(a == b) return;
-	if(sizes[a] > sizes[b]) swap(a, b);
-	par[a] = b;
-	sizes[b] += sizes[a];
-}
-
-int solve(int shift){
-	for(int i = 0; i < n; i++){
-		par[i] = i;
-		sizes[i] = 1;
+int solve(){
+	vector<int> d = getDivisors(n);
+	vector<int> val(d.size(), 0);
+	for(int i = 0; i < d.size(); i++){
+		val[i] = pow_mod(k, (d[i] + 1) / 2);
+		for(int j = 0; j < i; j++){
+			if(d[i] % d[j] == 0){
+				val[i] += MOD - val[j];
+				if(val[i] >= MOD) val[i] -= MOD;
+			}
+		}
 	}
-	for(int i = 0; i < n - 1 - i; i++) join(i, n - i - 1);
-	for(int i = 0; i < n; i++){
-		int j = (i + shift) % n;
-		join(i, j);
-	}
-	int ans = 1;
-	for(int i = 0; i < n; i++){
-		if(par[i] == i) ans = mul(ans, k);
+	int ans = 0;
+	for(int i = 0; i < d.size(); i++){
+		if(d[i] & 1){
+			ans += mul(val[i], d[i]);
+		}
+		else{
+			ans += mul(val[i], d[i] >> 1);
+		}
+		if(ans >= MOD) ans -= MOD;
 	}
 	return ans;
 }
 
 int main(){
 	scanf("%d %d", &n, &k);
-	int ans = 0;
-	for(int i = 0; i < n; i++){
-		cout << i << " " << solve(i) << endl;
-		ans += solve(i);
-		if(ans >= MOD) ans -= MOD;
-	}
-	cout << ans << endl;
-	ans = mul(ans, pow_mod(n, MOD - 2));
-	printf("%d\n", ans);
+	printf("%d\n", solve());
 	return 0;
 }
