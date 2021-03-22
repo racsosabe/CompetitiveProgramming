@@ -27,7 +27,7 @@ using namespace::std;
 
 	  to take the intervals in the corresponding range in O(logn).
 
-	- Complexity: O(nlog^2n)
+	- Complexity: O(mlog^2m + n)
 
 */
 
