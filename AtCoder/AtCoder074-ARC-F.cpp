@@ -10,6 +10,32 @@ using ll = long long;
 using vi = vector<int>;
 const int inf = 1e9;
 
+/*
+	Author: Racso Galvan
+
+	Idea:
+
+	- Min-cut problem.
+
+	- Just notice that if all the same rows / cols leaves are considered connected,
+
+	  we can just connect all of them to an extra node, so we can build a bipartite graph
+
+	  using n nodes for the rows and m nodes for the cols.
+
+	- Now, if we set bidirectional edges for each leaf (except S and T) in (i, j) between the row i and col j with
+
+	  capacity 1 and we connect S (consider its position to be Sx, Sy)
+
+	  with row Sx and col Sy with an infinite capacity outgoing edge and T (consider
+	  
+	  its position to be Tx, Ty) with row Tx and col Ty with an infinite capacity
+	  
+	  ingoing edge, the min cut of that network will give us the answer.
+
+	- Complexity: O((n + m)^4) but is better in practice.
+*/
+
 const int N = 100 + 5;
 
 struct Dinic {
