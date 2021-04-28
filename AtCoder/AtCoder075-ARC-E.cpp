@@ -1,6 +1,25 @@
 #include<bits/stdc++.h>
 using namespace::std;
 
+/*
+	Author: Racso Galvan
+
+	Idea:
+
+	- If you want to count the number of subarrays with mean >= x, just notice that
+
+	  sum(a[l], a[l + 1], ..., a[r]) / (r - l + 1) >= x implies
+
+	  sum(a[l], a[l + 1], ..., a[r]) >= (r - l + 1) * x
+	  sum(a[l] - x, a[l + 1] - x, ..., a[r] - x) >= 0
+
+	  so we can work with a new array a'[i] = a[i] - x;
+	  
+	- After this, just count the number of subarrays with sum greater than or equal to 0.
+
+	- Complexity: O(nlogn)
+*/
+
 mt19937 rng(chrono::steady_clock::now().time_since_epoch().count());
 
 int random(int l, int r){
