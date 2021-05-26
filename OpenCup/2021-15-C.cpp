@@ -1,6 +1,19 @@
 #include<bits/stdc++.h>
 using namespace::std;
 
+/*
+	Grand Prix of China - Problem C "Random Shuffle"
+
+	Author: Racso Galvan
+
+	Idea:
+
+	- 
+
+
+
+*/
+
 const int N = 100000 + 5;
 const int LOG = 64;
 
