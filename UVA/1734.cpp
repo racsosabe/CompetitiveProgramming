@@ -1,7 +1,7 @@
 #include<bits/stdc++.h>
 using namespace::std;
 
-const int N = 15;
+const int N = 12;
 const int MASK = 1 << 10;
 const int MOD = 1000000007;
 
@@ -11,9 +11,9 @@ int need;
 int C[MASK];
 int LSO[MASK];
 vector<int> v;
+int memo[MASK];
+int last[MASK];
 long long pot[N];
-bool vis[MASK][MASK];
-int memo[MASK][MASK];
 bool vis2[N][MASK][2][2];
 int memo2[N][MASK][2][2];
 
@@ -46,33 +46,67 @@ void init(){
 	}
 }
 
-int DP2(int pos, int mask, int menor, int valid){
-	if(pos == v.size()) return valid & (mask == need);
-	if(vis2[pos][mask][menor][valid]) return memo2[pos][mask][menor][valid];
-	int ans = 0;
-	int limit = menor ? 9 : v[pos];
-	int p = 1;
-	for(int i = 0; i <= limit; i++){
-		if(valid){
-			if(need & p) ans = add(ans, DP2(pos + 1, mask | p, menor | (i < v[pos]), 1));
-		}
-		else{
-			if(i == 0) ans = add(ans, DP2(pos + 1, mask, 1, 0));
-			else if(need & (1 << i)) ans = add(ans, DP2(pos + 1, mask | p, menor | (i < v[pos]), 1));
-		}
-		p <<= 1;
+int DP(){
+	for(int i = 0; i < MASK; i++){
+		last[i] = (i > 0);
 	}
-	vis2[pos][mask][menor][valid] = true;
-	return memo2[pos][mask][menor][valid] = ans;
+	for(int pos = 1023; pos >= 1; pos--){
+		memset(memo, 0, sizeof memo);
+		for(int used = 0; used < MASK; used++){
+			memo[used] = last[used];
+			if((pos & used) == 0){
+				memo[used] = add(memo[used], mul(C[pos], last[used | pos]));
+			}
+		}
+		for(int used = 0; used < MASK; used++){
+			last[used] = memo[used];
+		}
+	}
+	return last[0];
 }
 
-int DP(int pos, int used){
-	if(pos == 1024) return used > 0;
-	if(vis[pos][used]) return memo[pos][used];
-	int ans = DP(pos + 1, used);
-	if((pos & used) == 0) ans = add(ans, mul(C[pos], DP(pos + 1, used | pos)));
-	vis[pos][used] = true;
-	return memo[pos][used] = ans;
+void preprocess(){
+	queue<tuple<int, int, int, int>> Q;
+	Q.emplace(make_tuple(0, 0, 0, 0));
+	memo2[0][0][0][0] = 1;
+	vis2[0][0][0][0] = true;
+	while(!Q.empty()){
+		int pos, mask, menor, valid;
+		tie(pos, mask, menor, valid) = Q.front();
+		Q.pop();
+		if(pos == v.size()) continue;
+		int p = 1;
+		int limit = menor ? 9 : v[pos];
+		for(int d = 0; d <= limit; d++){
+			int nmask, nmenor, nvalid;
+			if(valid){
+				nmask = mask | p;
+				nmenor = menor | (d < v[pos]);
+				nvalid = 1;
+			}
+			else{
+				if(d == 0){
+					nmask = mask;
+					nmenor = menor | (d < v[pos]);
+					nvalid = 0;
+				}
+				else{
+					nmask = mask | p;
+					nmenor = menor | (d < v[pos]);
+					nvalid = 1;
+				}
+			}
+			if(not vis2[pos + 1][nmask][nmenor][nvalid]){
+				Q.emplace(make_tuple(pos + 1, nmask, nmenor, nvalid));
+				vis2[pos + 1][nmask][nmenor][nvalid] = true;
+			}
+			memo2[pos + 1][nmask][nmenor][nvalid] = add(memo2[pos + 1][nmask][nmenor][nvalid], memo2[pos][mask][menor][valid]);
+			p <<= 1;
+		}
+	}
+	for(int mask = 0; mask < 1 << 10; mask++){
+		C[mask] = add(memo2[v.size()][mask][0][1], memo2[v.size()][mask][1][1]);
+	}
 }
 
 int solve(){
@@ -82,13 +116,10 @@ int solve(){
 		n /= 10;
 	}
 	reverse(v.begin(), v.end());
-	for(int mask = 2; mask < 1 << 10; mask++){
-		need = mask;
-		memset(vis2, 0, sizeof vis2);
-		C[mask] = DP2(0, 0, 0, 0);
-	}
-	memset(vis, 0, sizeof vis);
-	return DP(1, 0);
+	memset(vis2, 0, sizeof vis2);
+	memset(memo2, 0, sizeof memo2);
+	preprocess();
+	return DP();
 }
 
 int main(){
