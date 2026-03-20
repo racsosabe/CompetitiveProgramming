@@ -7,87 +7,70 @@
 #include <bits/stdc++.h>
 using namespace std;
 
-struct MonotoneStack {
-    int len;
+struct MonotoneQueueFixedMemory {
     int* values;
     int* fulls;
-    MonotoneStack(int n) : len(0) {
+    int l;
+    int r;
+    int n;
+    MonotoneQueueFixedMemory(int n) : n(n) {
         values = new int[n];
         fulls = new int[n];
+        l = -1;
+        r = n;
     }
 
-    ~MonotoneStack() {
+    ~MonotoneQueueFixedMemory() {
         delete[] values;
         delete[] fulls;
     }
 
     void push(int x) {
-        if (len == 0) {
-            values[len] = fulls[len] = x;
+        if (l == -1) {
+            ++l;
+            values[l] = fulls[l] = x;
         }
         else {
-            values[len] = x;
-            fulls[len] = fulls[len - 1] | x;
+            ++l;
+            values[l] = x;
+            fulls[l] = fulls[l - 1] | x;
         }
-        ++len;
     }
 
-    int top() {
-        return len ? values[len - 1] : 0;
-    }
-
-    int full() {
-        return len ? fulls[len - 1] : 0;
-    }
-
-    void pop() {
-        if (len > 0) --len;
-    }
-
-    bool empty() {
-        return len == 0;
-    }
-};
-
-struct MonotoneQueue {
-    MonotoneStack in, out;
-    MonotoneQueue(int n) : in(n), out(n) {
-    }
-
-    ~MonotoneQueue() = default;
-
-    void push(int x) {
-        in.push(x);
+    void fix() {
+        if(r == n) {
+            while (l >= 0) {
+                int x = values[l];
+                if (r == n) {
+                    --r;
+                    values[r] = fulls[r] = x;
+                }
+                else {
+                    --r;
+                    values[r] = x;
+                    fulls[r] = fulls[r + 1] | x;
+                }
+                --l;
+            }
+        }
     }
 
     int front() {
-        if (out.empty()) {
-            while (not in.empty()) {
-                out.push(in.top());
-                in.pop();
-            }
-        }
-        return out.empty() ? 0 : out.top();
+        fix();
+        return r == n ? 0 : values[r];
     }
 
     int full() {
-        return out.full() | in.full();
+        return (~l ? fulls[l] : 0) | (r == n ? 0 : fulls[r]);
     }
 
     void pop() {
-        if (out.empty()) {
-            while (not in.empty()) {
-                out.push(in.top());
-                in.pop();
-            }
-        }
-        if (not out.empty()) {
-            out.pop();
-        }
+        fix();
+        if (r < n) r++;
     }
 
     bool empty() {
-        return in.empty() && out.empty();
+        return l == -1 && r == n;
     }
 };
 
@@ -103,7 +86,7 @@ int masks[N];
 int solve() {
     int r = 0;
     int res = 0;
-    MonotoneQueue Q(n);
+    MonotoneQueueFixedMemory Q(n);
     for (int l = 0; l < n; ++l) {
         while (r < n and Q.full() < m) {
             Q.push(masks[r]);
